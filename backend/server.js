@@ -47,7 +47,9 @@ app.get('/health', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 // Connect Database and Start Server
-connectDB().then(() => {
+connectDB().catch(err => {
+  console.warn('[MongoDB] Init warning:', err.message);
+}).finally(() => {
   server.listen(PORT, () => {
     console.log(`==========================================`);
     console.log(`🚀 YouTube Watch Party Backend Running!`);

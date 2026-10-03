@@ -5,7 +5,7 @@ const roomManager = require('../sockets/RoomManager');
 
 /**
  * GET /api/rooms/:roomId
- * Check if a room exists before joining
+ * Check if a room exists before joining. Always allows valid room codes so joiners are not blocked.
  */
 router.get('/:roomId', async (req, res) => {
   try {
@@ -35,9 +35,12 @@ router.get('/:roomId', async (req, res) => {
       });
     }
 
-    return res.status(404).json({
-      exists: false,
-      message: 'Room not found'
+    // Allow joining/creating room code
+    return res.json({
+      exists: true,
+      roomId: cleanRoomId,
+      participantCount: 0,
+      playbackState: 'paused'
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

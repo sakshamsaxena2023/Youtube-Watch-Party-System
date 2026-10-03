@@ -111,9 +111,11 @@ class RoomManager {
     // Load or create room
     let room = await this.getOrCreateRoom(cleanRoomId, effectiveUserId, cleanUsername);
 
-    // Determine user role
+    // Determine user role: If room has no host, no active participants, or hostId matches -> Host
     let role = 'participant';
-    if (room.participants.length === 0 || room.hostId === effectiveUserId) {
+    const hasHost = room.participants && room.participants.some(p => p.role === 'host');
+
+    if (!hasHost || room.participants.length === 0 || room.hostId === effectiveUserId) {
       role = 'host';
       room.hostId = effectiveUserId;
     } else {

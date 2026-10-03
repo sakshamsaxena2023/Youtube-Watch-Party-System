@@ -53,7 +53,11 @@ export const WatchRoom: React.FC = () => {
 
     const fetchVideoStats = async () => {
       try {
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || (window.location.origin.includes('localhost') ? 'http://localhost:5000' : window.location.origin);
+        const backendUrl = (import.meta.env.VITE_BACKEND_URL && import.meta.env.VITE_BACKEND_URL.trim())
+          ? import.meta.env.VITE_BACKEND_URL.trim()
+          : (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+              ? 'http://localhost:5000'
+              : 'https://youtube-watch-party-system-64lh.onrender.com');
         const res = await fetch(`${backendUrl}/api/youtube/stats/${videoId}`);
         if (res.ok) {
           const data = await res.json();

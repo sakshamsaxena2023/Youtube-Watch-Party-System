@@ -31,7 +31,11 @@ export const Lobby: React.FC = () => {
     setErrorMessage('');
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || (window.location.origin.includes('localhost') ? 'http://localhost:5000' : window.location.origin);
+      const backendUrl = (import.meta.env.VITE_BACKEND_URL && import.meta.env.VITE_BACKEND_URL.trim())
+        ? import.meta.env.VITE_BACKEND_URL.trim()
+        : (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+            ? 'http://localhost:5000'
+            : 'https://youtube-watch-party-system-64lh.onrender.com');
       const res = await fetch(`${backendUrl}/api/rooms`, { method: 'POST' });
       const data = await res.json();
       const newRoomId = data.roomId || `party-${Math.random().toString(36).substring(2, 8)}`;
@@ -68,7 +72,11 @@ export const Lobby: React.FC = () => {
     const cleanRoom = roomIdInput.trim().toLowerCase();
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || (window.location.origin.includes('localhost') ? 'http://localhost:5000' : window.location.origin);
+      const backendUrl = (import.meta.env.VITE_BACKEND_URL && import.meta.env.VITE_BACKEND_URL.trim())
+        ? import.meta.env.VITE_BACKEND_URL.trim()
+        : (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+            ? 'http://localhost:5000'
+            : 'https://youtube-watch-party-system-64lh.onrender.com');
       const res = await fetch(`${backendUrl}/api/rooms/${cleanRoom}`);
       if (!res.ok) {
         setErrorMessage('Party room not found. Check code or create a new party.');

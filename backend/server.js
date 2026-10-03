@@ -13,7 +13,7 @@ const server = http.createServer(app);
 
 // Configure CORS
 const corsOptions = {
-  origin: '*',
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 };
@@ -23,10 +23,12 @@ app.use(express.json());
 // Socket.IO setup
 const io = new Server(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+    origin: true,
+    methods: ['GET', 'POST'],
+    credentials: true
   },
-  transports: ['websocket', 'polling']
+  transports: ['polling', 'websocket'],
+  allowEIO3: true
 });
 
 // Register Socket handlers

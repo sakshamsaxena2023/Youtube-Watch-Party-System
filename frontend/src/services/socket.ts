@@ -17,7 +17,7 @@ export const getSocket = (): Socket => {
     console.log(`[Socket] Initializing connection to backend URL: ${BACKEND_URL}`);
 
     socket = io(BACKEND_URL, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 30,

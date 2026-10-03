@@ -25,7 +25,8 @@ const io = new Server(server, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST']
-  }
+  },
+  transports: ['websocket', 'polling']
 });
 
 // Register Socket handlers
@@ -46,15 +47,15 @@ app.get('/health', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-// Connect Database and Start Server
+// Connect Database and Start Server bound to 0.0.0.0 for Cloud Hosting (Render/Railway/Heroku)
 connectDB().catch(err => {
   console.warn('[MongoDB] Init warning:', err.message);
 }).finally(() => {
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`==========================================`);
     console.log(`🚀 YouTube Watch Party Backend Running!`);
     console.log(`🌐 Server Port: ${PORT}`);
-    console.log(`🏥 Health Endpoint: http://localhost:${PORT}/health`);
+    console.log(`🏥 Health Endpoint: http://0.0.0.0:${PORT}/health`);
     console.log(`==========================================`);
   });
 });

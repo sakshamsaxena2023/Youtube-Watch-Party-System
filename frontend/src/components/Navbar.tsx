@@ -77,11 +77,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  disabled={!isElevated}
+                  disabled={!isConnected || !isElevated}
                   placeholder={
-                    isElevated
+                    !isConnected
+                      ? "Connecting to server... (Please wait)"
+                      : isElevated
                       ? "Paste YouTube video URL or ID (e.g., https://youtube.com/watch?v=...)"
-                      : "Watch Only Mode (Host controls video playback)"
+                      : "Watch Only Mode (Controls managed by Host & Moderators)"
                   }
                   className="w-full bg-[#121212] border border-[#303030] focus:border-[#1C62B9] text-[#F1F1F1] placeholder-[#AAAAAA] text-sm pl-4 pr-10 py-2 rounded-l-full focus:outline-none transition disabled:opacity-60"
                 />
@@ -93,15 +95,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                   >
                     <X className="w-4 h-4" />
                   </button>
-                ) : !isElevated ? (
-                  <Lock className="w-4 h-4 text-[#AAAAAA] absolute right-3.5 top-1/2 -translate-y-1/2" />
+                ) : !isConnected || !isElevated ? (
+                  <span
+                    title={
+                      !isConnected
+                        ? "Server disconnected — Attempting reconnection to backend"
+                        : "Watch Only Mode — Controls managed by Host & Moderators"
+                    }
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 cursor-help"
+                  >
+                    <Lock className={`w-4 h-4 ${!isConnected ? 'text-red-400 animate-pulse' : 'text-[#AAAAAA]'}`} />
+                  </span>
                 ) : null}
               </div>
               <button
                 type="submit"
-                disabled={!isElevated || !searchInput.trim()}
+                disabled={!isConnected || !isElevated || !searchInput.trim()}
                 className="bg-[#222222] hover:bg-[#272727] disabled:hover:bg-[#222222] border border-l-0 border-[#303030] px-6 py-2 rounded-r-full text-[#F1F1F1] disabled:text-[#606060] transition flex items-center justify-center"
-                title={isElevated ? "Load YouTube Video" : "Host controls playback"}
+                title={
+                  !isConnected
+                    ? "Connecting to server..."
+                    : isElevated
+                    ? "Load YouTube Video"
+                    : "Controls managed by Host & Moderators"
+                }
               >
                 <Search className="w-4 h-4" />
               </button>

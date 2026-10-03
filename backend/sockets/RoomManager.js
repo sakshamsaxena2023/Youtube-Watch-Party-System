@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Room = require('../models/Room');
 const { extractYouTubeId } = require('../utils/youtube');
 
@@ -7,6 +8,10 @@ class RoomManager {
     this.rooms = new Map();
     // Socket lookup: socketId -> { roomId, userId, username }
     this.socketToUser = new Map();
+  }
+
+  isDbConnected() {
+    return mongoose.connection && mongoose.connection.readyState === 1;
   }
 
   // Calculate live position based on elapsed time if playing
@@ -23,10 +28,30 @@ class RoomManager {
     let room = this.rooms.get(roomId);
 
     if (!room) {
-      // Check MongoDB
-      let dbRoom = await Room.findOne({ roomId });
-      if (!dbRoom) {
-        dbRoom = await Room.create({
+      if (this.isDbConnected()) {
+        try {
+          let dbRoom = await Room.findOne({ roomId });
+          if (!dbRoom) {
+            dbRoom = await Room.create({
+              roomId,
+              hostId: hostUserId,
+              currentVideoId: 'dQw4w9WgXcQ',
+              playbackState: 'paused',
+              lastPosition: 0,
+              lastUpdated: new Date(),
+              participants: [{ userId: hostUserId, username: hostUsername, role: 'host' }],
+              chatMessages: []
+            });
+          }
+          room = dbRoom.toObject();
+        } catch (err) {
+          console.warn(`[RoomManager] DB getOrCreateRoom error (${err.message}). Using in-memory fallback.`);
+        }
+      }
+
+      // If DB was not connected or DB query failed, create in-memory room object
+      if (!room) {
+        room = {
           roomId,
           hostId: hostUserId,
           currentVideoId: 'dQw4w9WgXcQ',
@@ -35,9 +60,8 @@ class RoomManager {
           lastUpdated: new Date(),
           participants: [{ userId: hostUserId, username: hostUsername, role: 'host' }],
           chatMessages: []
-        });
+        };
       }
-      room = dbRoom.toObject();
       this.rooms.set(roomId, room);
     }
     return room;
@@ -46,7 +70,7 @@ class RoomManager {
   // Helper to persist room changes asynchronously to MongoDB
   async persistRoom(roomId) {
     const room = this.rooms.get(roomId);
-    if (!room) return;
+    if (!room || !this.isDbConnected()) return;
     try {
       await Room.findOneAndUpdate(
         { roomId },
@@ -87,11 +111,15 @@ class RoomManager {
     if (!targetRoomId) return { room: null, userInfo: null };
 
     let room = this.rooms.get(targetRoomId);
-    if (!room) {
-      const dbRoom = await Room.findOne({ roomId: targetRoomId });
-      if (dbRoom) {
-        room = dbRoom.toObject();
-        this.rooms.set(targetRoomId, room);
+    if (!room && this.isDbConnected()) {
+      try {
+        const dbRoom = await Room.findOne({ roomId: targetRoomId });
+        if (dbRoom) {
+          room = dbRoom.toObject();
+          this.rooms.set(targetRoomId, room);
+        }
+      } catch (err) {
+        console.warn(`[RoomManager] DB resolveRoom error (${err.message}).`);
       }
     }
     return { room, userInfo, targetRoomId };
